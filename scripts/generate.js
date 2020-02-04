@@ -10,6 +10,8 @@ const LANG_PATH_GETTER_REG = /content\/([^/]+)\/(.+).md/;
 console.log("Generating files ...");
 
 const genDir = path.join(__dirname, '../generated');
+fs.ensureDirSync(genDir);
+
 (async function() {
 
 	const { build_url, generated_commit } = await
