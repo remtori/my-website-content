@@ -103,8 +103,8 @@ fs.ensureDirSync(genDir);
 				// These value can't be update
 				oldDoc && {
 					id: oldDoc.id,
-					lang,
-					content: contentPath,
+					lang: oldDoc.lang,
+					content: oldDoc.content,
 					created: oldDoc.created,
 				}
 			);
