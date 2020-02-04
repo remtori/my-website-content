@@ -1,3 +1,6 @@
+---
+author: Remtori
+---
 # About me
 
 I'm the guy who make this, pretty proud of myself for that tbh ~

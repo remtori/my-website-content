@@ -53,7 +53,7 @@ fs.ensureDirSync(genDir);
 	});
 
 	for (let i = 0; i < db.length; i++) {
-		const j = changedFiles.indexOf(`content/${doc.lang}/${doc.content}.md`);
+		const j = changedFiles.indexOf(`content/${db[i].lang}/${db[i].content}.md`);
 		if (j >= 0) {
 			// update metadata and remove its from the list
 			db[i] = updateDBDoc(changedFiles[j], db[i]);
