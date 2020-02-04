@@ -65,6 +65,8 @@ const genDir = path.join(__dirname, '../generated');
 		db.push(doc);
 	}
 
+	await fs.writeFile(blogIndexPath, JSON.stringify(db, null, 2));
+
 	console.log(`Generated ./generated/index.json`);
 
 	function updateDBDoc(filePath, oldDoc) {
@@ -89,7 +91,7 @@ const genDir = path.join(__dirname, '../generated');
 		};
 
 		const sourceData = fs.readFileSync(path.join(__dirname, '..', filePath), 'utf8');
-		const docSource = FRONT_MATTER_REG.exec(sourceData)[1];
+		const docSource = (FRONT_MATTER_REG.exec(sourceData) || [])[1];
 
 		if (docSource) {
 			doc = Object.assign(
