@@ -109,11 +109,6 @@ const genDir = path.join(__dirname, '../generated');
 
 		return doc;
 	}
-
-	// Done pushing everything to github
-	console.log(
-		await execute(`bash "${path.join(__dirname, './push.sh')}"`)
-	);
 })();
 
 function execute(script) {

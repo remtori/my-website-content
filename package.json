@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "node ./scripts/generate.js && ./scripts/push.sh && node ./scripts/trigger-build.js"
+    "start": "node ./scripts/generate.js && ./scripts/push.sh"
   },
   "dependencies": {
     "cross-fetch": "^3.0.4",
