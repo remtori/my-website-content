@@ -101,7 +101,6 @@ const genDir = path.join(__dirname, '../generated');
 					id: oldDoc.id,
 					lang,
 					content: contentPath,
-					author: oldDoc.author,
 					created: oldDoc.created,
 				}
 			);
@@ -141,10 +140,17 @@ function getLastModifyDate(filePath) {
 			}}
 		`})
 	}).then(r => r.json()).then(r => {
-		const node = r.data.repository.ref.target.history.edges[0].node;
-		return {
-			committedDate: node.committedDate,
-			authorName: node.author.name,
-		};
+		try {
+			const node = r.data.repository.ref.target.history.edges[0].node;
+			return {
+				committedDate: node.committedDate,
+				authorName: node.author.name,
+			};
+		}
+		catch(e) {
+			console.log("Parse Data Error:");
+			console.log(r);
+			process.exit(1);
+		}
 	});
 }
