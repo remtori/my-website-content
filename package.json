@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "start": "node ./scripts/generate.js && ./scripts/push.sh && node ./scripts/trigger-build.js"
+  },
+  "dependencies": {
+    "cross-fetch": "^3.0.4",
+    "firebase-admin": "^8.9.2",
+    "fs-extra": "^8.1.0",
+    "yaml": "^1.7.2"
+  }
+}

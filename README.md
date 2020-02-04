@@ -14,7 +14,7 @@ Optional config per md/html file:
 
 - public: Boolean - Will it show on listing page and/or search result
 
-- tags: String[]
+- tags: String - Each tag is space-separated
 
 Generated field (via Travis CI):
 
@@ -28,4 +28,22 @@ On commit generate & commit:
 
 - re-render.json: paths to content file to re-render
 
-- blog-indexes.json: list of all blog with some description
+- index.json: list of all content with some metadata
+
+index.json example layout
+
+```json
+[
+	{
+		"id": "first-test-hash123",
+		"language": "en",
+		"content": "blogs/first-test-hash123",
+		"title": "First blog for testing purpose",
+		"description": "A really nice description because i just has a terrible night",
+		"tags": "first-blog blog first fuck im-sad",
+		"author": "Remtori",
+		"created": "2020-02-04T16:44:07.160Z",
+		"modified": "2020-02-04T16:44:07.160Z"
+	}
+]
+```

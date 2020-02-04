@@ -7,3 +7,4 @@ git config --global push.default current
 git add .
 git commit -m "Travis CI: Update generated"
 git push https://${GITHUB_TOKEN}@github.com/remtori/my-website-content.git
+echo "Done !"
