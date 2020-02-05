@@ -9,7 +9,7 @@ const LANG_PATH_GETTER_REG = /content\/([^/]+)\/(.+).md/;
 
 console.log("Generating files ...");
 
-const genDir = path.join(__dirname, '../generated');
+const genDir = path.join(__dirname, '../content');
 fs.ensureDirSync(genDir);
 
 (async function() {
@@ -27,14 +27,18 @@ fs.ensureDirSync(genDir);
 	console.log(`Diff of current master with ${generated_commit} :`);
 	console.log(diff);
 
-	const changedFiles = diff.split('\n').filter(s => s.startsWith('content/'));
+	const changedFiles = diff.split('\n').filter(s => s.startsWith('content/en/'));
+	const changedUrl = changedFiles.map(p => '/' + LANG_PATH_GETTER_REG.exec(p)[2]);
+
+	console.log(`Re-render paths:`);
+	console.log(changedUrl.join('\n'));
 
 	await fs.writeFile(
 		path.join(genDir, 're-render.json'),
-		JSON.stringify(changedFiles, null, 2)
+		JSON.stringify(changedUrl, null, 2)
 	);
 
-	console.log(`Generated ./generated/re-render.json`);
+	console.log(`Generated re-render.json`);
 
 	let db = [];
 	const blogIndexPath = path.join(genDir, './index.json');
@@ -52,14 +56,21 @@ fs.ensureDirSync(genDir);
 		return out;
 	});
 
+	let statFileUpdateCount = 0;
 	for (let i = 0; i < db.length; i++) {
-		const j = changedFiles.indexOf(`content/${db[i].lang}/${db[i].content}.md`);
+
+		if (db[i].lang !== 'en') continue;
+
+		const j = changedFiles.indexOf(`content/en/${db[i].content}.md`);
 		if (j >= 0) {
 			// update metadata and remove its from the list
 			db[i] = updateDBDoc(changedFiles[j], db[i]);
 			changedFiles.splice(j, 1);
+			statFileUpdateCount++;
 		}
 	}
+
+	console.log(`Update database, ${statFileUpdateCount} document updated`);
 
 	// the remaining item in 'changedFiles' is newly created file
 	for (const filePath of changedFiles) {
@@ -67,9 +78,11 @@ fs.ensureDirSync(genDir);
 		db.push(doc);
 	}
 
+	console.log(`Update database, ${changedFiles.length} document created`);
+
 	await fs.writeFile(blogIndexPath, JSON.stringify(db, null, 2));
 
-	console.log(`Generated ./generated/index.json`);
+	console.log(`Generated index.json`);
 
 	function updateDBDoc(filePath, oldDoc) {
 
