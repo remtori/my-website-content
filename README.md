@@ -26,9 +26,11 @@ Generated field (via Travis CI):
 
 On commit generate & commit:
 
-- re-render.json: paths to content file to re-render
+- routes.json    : all prerender paths (only `en`)
 
-- index.json: list of all content with some metadata
+- patch.json     : paths that need to re-render or remove (only `en`)
+
+- index.json     : list of all content with some metadata (the index contain all language)
 
 index.json example layout
 
@@ -38,6 +40,7 @@ index.json example layout
 		"id": "first-test-hash123",
 		"language": "en",
 		"content": "blogs/first-test-hash123",
+		"isFullPage": false,
 		"title": "First blog for testing purpose",
 		"description": "A really nice description because i just has a terrible night",
 		"tags": "first-blog blog first fuck im-sad",
