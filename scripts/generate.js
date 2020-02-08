@@ -33,7 +33,7 @@ function getLangAndContent(filePath) {
 
 	return {
 		lang: result[1],
-		content: result[2]
+		content: '/' + result[2].replace(/\.md$/, ''),
 	};
 }
 
@@ -220,10 +220,6 @@ async function genIndexData(updatedFiles, removedFiles) {
 		const sourceData = await fs.readFile(path.join(rootDir, filePath), 'utf8');
 		const docSource = (FRONT_MATTER_REG.exec(sourceData) || [])[1];
 
-		const md4hash = crypto.createHash('md4')
-			  				  .update(sourceData)
-		                      .digest('hex');
-
 		if (docSource) {
 			doc = Object.assign(
 				{},
@@ -234,7 +230,6 @@ async function genIndexData(updatedFiles, removedFiles) {
 					id: oldDoc.id,
 					lang: oldDoc.lang,
 					content: oldDoc.content,
-					contentHash: md4hash,
 					created: oldDoc.created,
 				}
 			);

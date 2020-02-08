@@ -37,10 +37,9 @@ index.json example layout
 ```json
 [
 	{
-		"id": "first-test-[time_hash:8]",
+		"id": "first-test-[optional_time_hash:8]",
 		"language": "en",
-		"content": "blogs/first-test-[time_hash:8].md",
-		"contentHash": "[content_hash:8]",
+		"content": "blogs/first-test-[optional_time_hash:8].md",
 		"isFullPage": false,
 		"title": "First blog for testing purpose",
 		"description": "A really nice description because i just has a terrible night",

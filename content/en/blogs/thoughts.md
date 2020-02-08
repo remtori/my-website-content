@@ -1,7 +1,7 @@
 ---
 title: About the blogs architecture
 description: Need to do a little brainstorm about the current architecture
-tags: blog thoughts
+tags: blog my-website thoughts
 author: Remtori
 ---
 
