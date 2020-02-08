@@ -192,6 +192,8 @@ async function genIndexData(updatedFiles, removedFiles) {
 
 	console.log(`Update database, ${updatedFiles.length} document created`);
 
+	db.sort((a, b) => a.created > b.created ? -1 : 1);
+
 	await fs.writeFile(blogIndexPath, strJson(db));
 
 	console.log(`Generated index.json`);
