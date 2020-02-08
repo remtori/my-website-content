@@ -1,0 +1,12 @@
+{
+  "update": [
+    "/about",
+    "/blogs/diary",
+    "/blogs/first-test",
+    "/blogs/thoughts",
+    "/"
+  ],
+  "remove": [
+    "/home"
+  ]
+}

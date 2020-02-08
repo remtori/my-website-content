@@ -26,10 +26,12 @@ function getBuildData() {
 			return {
 				build_url: r.fields.build_url.stringValue,
 				generated_commit: r.fields.generated_commit.stringValue,
+				updateTime: r.updateTime,
 			}
 		} catch(e) {
 			console.log("Parse Firestore Data Error:");
 			console.log(r);
+			console.log(e);
 			process.exit(1);
 		}
 	});
@@ -66,6 +68,7 @@ function getLastModifyDate(filePath) {
 		catch(e) {
 			console.log("Parse Github Data Error:");
 			console.log(r);
+			console.log(e);
 			process.exit(1);
 		}
 	});
