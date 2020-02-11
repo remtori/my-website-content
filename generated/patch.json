@@ -1,0 +1,12 @@
+{
+  "update": [
+    "/404",
+    "/about",
+    "/blogs/diary",
+    "/blogs/first-test",
+    "/blogs/pipeline",
+    "/blogs/thoughts",
+    "/"
+  ],
+  "remove": []
+}
