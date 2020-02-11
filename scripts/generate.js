@@ -1,8 +1,33 @@
+/**
+ * The purpose of this script is to create 2 file, index.json and patch.json
+ *
+ * index.json: Indexing everything in /content, might be quite large after a while
+ *
+ * patch.json: List of route that need update or remove to be up to date with the current master
+ *                the information necessary to do this is store in firebase firestore at utils/netlify
+ *
+ *
+ * Then push the resulting change to github with the `[travis-ci skip]` commit message
+ * After pushing the commit successfully, trigger the Netlify build via the build hook URL
+ *
+ *
+ * Environment Variable:
+ *
+ * TEST:
+ *       - 1: Generate files with the online firestore data,
+ *            WITHOUT querying updated time (commit time) from github,
+ *            pushing the changes to Github or triggering a Netlify build
+ *
+ *       - 2: Generate files with the online firestore data,
+ *            along with the updated time (commit time) from github
+ *            WITHOUT pushing the changes to Github or triggering a Netlify build
+ *
+ * GITHUB_TOKEN: Github Token used to make API call
+ */
+
 const fs = require('fs-extra');
-const walker = require('walker');
 const path = require('path');
 const yaml = require('yaml');
-const crypto = require('crypto');
 const {
 	execute,
 	triggerBuild,
@@ -83,9 +108,6 @@ function getUrlFromContent(filePath) {
 		return;
 	}
 
-	// routes.json
-	asyncWork.push(genAllRoutes());
-
 	// patch.json
 	asyncWork.push(genPatch(updatedFiles, removedFiles));
 
@@ -100,20 +122,6 @@ function getUrlFromContent(filePath) {
 	// Trigger Netlify build
 	!process.env.TEST && await triggerBuild(build_url);
 })();
-
-async function genAllRoutes() {
-	const paths = [];
-	await new Promise(resolve => {
-		walker(contentDir)
-			.on('file', p =>
-				paths.push(getUrlFromContent(p))
-			)
-			.on('end', () => resolve(paths));
-	});
-
-	fs.writeFile(path.join(genDir, 'routes.json'), strJson(paths));
-	console.log(`Generated routes.json`);
-}
 
 async function genPatch(updatedFiles, removedFiles) {
 	const updatePaths = updatedFiles
