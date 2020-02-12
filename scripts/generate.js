@@ -68,6 +68,8 @@ function getUrlFromContent(filePath) {
 
 async function generate() {
 
+	await execute(`git checkout master`).then(console.log);
+
 	// patch.json
 	await genPatch();
 
@@ -75,8 +77,9 @@ async function generate() {
 	await genIndex();
 
 	// Push to github
-	if (!process.env.TEST || process.env.TEST === 1)
-		console.log(await execute(`sh ./scripts/push.sh`));
+	if (!process.env.TEST || process.env.TEST === 1) {
+		await execute(`sh ./scripts/push.sh`).then(console.log);
+	}
 
 	// Trigger Netlify build
 	if (!process.env.TEST) {
