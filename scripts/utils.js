@@ -1,4 +1,4 @@
-const fetch = require('cross-fetch');
+const fetch = require('node-fetch');
 const { exec } = require('child_process');
 
 function execute(script) {

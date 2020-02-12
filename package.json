@@ -3,8 +3,8 @@
     "start": "node ./scripts/generate.js"
   },
   "dependencies": {
-    "cross-fetch": "^3.0.4",
     "fs-extra": "^8.1.0",
+    "node-fetch": "^2.6.0",
     "yaml": "^1.7.2"
   },
   "devDependencies": {}
