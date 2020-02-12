@@ -10,30 +10,35 @@ function execute(script) {
 	});
 }
 
+// List of all the "content" that has changed
+function contentDiff(sha1) {
+
+	const updatedFiles = [];
+	const removedFiles = [];
+
+	return execute(`git diff --name-status ${sha1}`).then(diffs => {
+		diffs.split('\n')
+		.filter(
+			s => /^[AMD]\tcontent\/(\w+)\//.test(s)
+		)
+		.forEach(
+			p => (
+				p[0] !== 'D'
+				? updatedFiles
+				: removedFiles
+			).push(
+				p.slice(2)
+			)
+		);
+
+		return { updatedFiles, removedFiles };
+	});
+}
+
 function triggerBuild(url) {
 	return fetch(url, {
 		method: "POST",
 		body: '{}'
-	});
-}
-
-function getBuildData() {
-	return fetch(
-		'https://firestore.googleapis.com/v1/projects/remtori/databases/(default)/documents/utils/netlify'
-	).then(r => r.json())
-	.then(r => {
-		try {
-			return {
-				build_url: r.fields.build_url.stringValue,
-				generated_commit: r.fields.generated_commit.stringValue,
-				updateTime: r.updateTime,
-			}
-		} catch(e) {
-			console.log("Parse Firestore Data Error:");
-			console.log(r);
-			console.log(e);
-			process.exit(1);
-		}
 	});
 }
 
@@ -74,4 +79,6 @@ function getLastModifyDate(filePath) {
 	});
 }
 
-module.exports = { execute, getLastModifyDate, getBuildData, triggerBuild };
+module.exports = {
+	execute, contentDiff, triggerBuild, getLastModifyDate,
+};

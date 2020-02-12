@@ -15,14 +15,17 @@
  *
  * TEST:
  *       - 1: Generate files with the online firestore data,
- *            WITHOUT querying updated time (commit time) from github,
- *            pushing the changes to Github or triggering a Netlify build
+ *            along with the updated time (commit time) from github,
+ *            then pushing the changes to Github
+ *            WITHOUT triggering a Netlify build
  *
  *       - 2: Generate files with the online firestore data,
- *            along with the updated time (commit time) from github
- *            WITHOUT pushing the changes to Github or triggering a Netlify build
+ *            WITHOUT querying updated time (commit time) from github,
+ * 	          pushing the changes or triggering a Netlify build
  *
  * GITHUB_TOKEN: Github Token used to make API call
+ *
+ * BUILD_URL: Netlify build hook url
  */
 
 const fs = require('fs-extra');
@@ -33,11 +36,10 @@ const {
 	triggerBuild,
 	getBuildData,
 	getLastModifyDate,
+	contentDiff,
 } = require('./utils');
 
 const FRONT_MATTER_REG = /^\s*---\n\s*([\s\S]*?)\s*\n---\n/i;
-
-console.log("Generating files ...");
 
 const rootDir = path.join(__dirname, '..');
 const genDir = path.join(rootDir, './generated');
@@ -46,8 +48,6 @@ fs.ensureDirSync(genDir);
 process.chdir(rootDir);
 
 const isDefaultContent = p => p.startsWith('content/en');
-const docToPath = d => `content/${d.lang}/${d.content}`;
-
 const strJson = j => JSON.stringify(j, null, 2);
 
 function getLangAndContent(filePath) {
@@ -66,64 +66,34 @@ function getUrlFromContent(filePath) {
 	return ('/' + path.relative(contentDir, filePath)).replace(/(index|\.md)/g, '');
 }
 
-(async function() {
-
-	// List of promise that do not need to complete in a particular order
-	const asyncWork = [];
-
-	// Get build information
-	// build_url: Netlify build url, used to trigger a Netlify build
-	// generated_commit: The commit that Netlify last build upon
-
-	console.log('Getting build data');
-	const { build_url, generated_commit, updateTime } = await getBuildData();
-	console.log(`Build data last updated at: ${new Date(updateTime).toGMTString()}`)
-
-	console.group(`Diff of current master with ${generated_commit}:`);
-	const diff = await execute(`git diff --name-status ${generated_commit}`);
-
-	// List of all the "content" that has changed
-	const updatedFiles = [];
-	const removedFiles = [];
-	diff.split('\n')
-		.filter(
-			s => /^[AMD]\tcontent\/(\w+)\//.test(s)
-		)
-		.forEach(p => {
-			(p[0] !== 'D' ? updatedFiles : removedFiles).push(p.slice(2));
-		});
-
-	console.group(`Modified / Updated files:`);
-	console.log(updatedFiles.join('\n'));
-	console.groupEnd();
-
-	console.group(`Removed files:`);
-	console.log(removedFiles.join('\n'));
-	console.groupEnd();
-
-	console.groupEnd();
-
-	if (updatedFiles.length + removedFiles.length === 0) {
-		console.log('No content changed, exiting');
-		return;
-	}
+async function generate() {
 
 	// patch.json
-	asyncWork.push(genPatch(updatedFiles, removedFiles));
+	await genPatch();
 
 	// index.json
-	asyncWork.push(genIndexData(updatedFiles, removedFiles));
-
-	await Promise.all(asyncWork);
+	await genIndex();
 
 	// Push to github
-	!process.env.TEST && console.log(await execute(`sh ./scripts/push.sh`));
+	if (!process.env.TEST || process.env.TEST === 1)
+		console.log(await execute(`sh ./scripts/push.sh`));
 
 	// Trigger Netlify build
-	!process.env.TEST && await triggerBuild(build_url);
-})();
+	if (!process.env.TEST) {
+		console.log(`Trigger Netlify build...`);
+		await triggerBuild(process.env.BUILD_URL);
+	}
+}
 
-async function genPatch(updatedFiles, removedFiles) {
+async function genPatch() {
+
+	const head$commit = (await execute(`git rev-parse HEAD`)).replace(/[^\w]/g, '');
+	const published$commit = (await fs.readFile(path.join(genDir, './published_commit'), 'utf8')).replace(/[^\w]/g, '');
+
+	console.group(`Generating patch.json with diff from ${published$commit.slice(0, 7)} to ${head$commit.slice(0, 7)}`);
+
+	const { updatedFiles, removedFiles } = await contentDiff(published$commit);
+
 	const updatePaths = updatedFiles
 		.filter(isDefaultContent)
 		.map(getUrlFromContent);
@@ -141,20 +111,39 @@ async function genPatch(updatedFiles, removedFiles) {
 	);
 
 	console.log(`Generated patch.json`);
+	console.groupEnd();
 }
 
-async function genIndexData(updatedFiles, removedFiles) {
+const uidFromDoc = doc => `${doc.lang}\\\\${doc.content}`;
+const uidFromPath = p => uidFromDoc(getLangAndContent(p));
 
-	let db = [];
-	const blogIndexPath = path.join(genDir, './index.json');
+async function genIndex() {
+
 	console.group('Generating index.json');
-	if (fs.existsSync(blogIndexPath)) {
-		db = require(blogIndexPath);
 
-		const len = db.length;
-		db = db.filter(o => !removedFiles.includes(docToPath(o)));
-		console.log(`Update database, ${len - db.length} document removed`);
+	const head$commit = (await execute(`git rev-parse HEAD`)).replace(/[^\w]/g, '');
+	const tail$commit = (await execute(`git rev-list --max-parents=0 master`)).replace(/[^\w]/g, '');
+
+	const db = {
+		$commit: tail$commit,
+		documents: [],
+	};
+
+	const blogIndexPath = path.join(genDir, './index.json');
+	if (fs.existsSync(blogIndexPath)) {
+		Object.assign(db, require(blogIndexPath));
 	}
+
+	let len;
+	console.log(`Updating index.json from ${db.$commit.slice(0, 7)} to ${head$commit.slice(0, 7)}`);
+	if (db.$commit === head$commit) {
+		console.log(`index.json is already up-to-date`);
+		console.groupEnd();
+		return;
+	}
+
+	const { updatedFiles, removedFiles } = await contentDiff(db.$commit);
+	db.$commit = head$commit;
 
 	console.log('Getting last modified time of all changed content.');
 
@@ -177,34 +166,44 @@ async function genIndexData(updatedFiles, removedFiles) {
 		return out;
 	});
 
-	let statFileUpdateCount = 0;
-	for (let i = 0; i < db.length; i++) {
+	// Filter out removed file
+	{
+		const uidDocList = db.documents.map(uidFromDoc);
+		const blacklist = removedFiles.map(uidFromPath);
 
-		const j = updatedFiles.indexOf(docToPath(db[i]));
+		len = db.documents.length;
+		db.documents = db.documents.filter((_, i) => blacklist.indexOf(uidDocList[i]) === -1);
+		console.log(`Update database, ${len - db.documents.length}/${removedFiles.length} document removed`);
+	}
 
-		if (j >= 0) {
-			// update metadata and remove its from the list
-			db[i] = await updateDBDoc(updatedFiles[j], db[i]);
-			updatedFiles.splice(j, 1);
-			statFileUpdateCount++;
+	// Create/Update the document
+	{
+		const uidDocList = db.documents.map(uidFromDoc);
+		const whitelist = updatedFiles.map(uidFromPath);
+
+		let updateCount = 0;
+		for (let i = 0; i < updatedFiles.length; i++) {
+
+			const j = uidDocList.indexOf(whitelist[i]);
+
+			if (j >= 0) {
+				db.documents[i] = await updateDBDoc(updatedFiles[i], db.documents[j]);
+				updateCount++;
+			} else {
+				const doc = await updateDBDoc(updatedFiles[i]);
+				db.documents.push(doc);
+			}
 		}
+
+		console.log(`Update database, ${updateCount} document updated`);
+		console.log(`Update database, ${updatedFiles.length - updateCount} document created`);
 	}
 
-	console.log(`Update database, ${statFileUpdateCount} document updated`);
-
-	// the remaining item in 'updatedFiles' is newly created file
-	for (const filePath of updatedFiles) {
-		const doc = await updateDBDoc(filePath);
-		db.push(doc);
-	}
-
-	console.log(`Update database, ${updatedFiles.length} document created`);
-
-	db.sort((a, b) => a.created > b.created ? -1 : 1);
-
+	// Sort the document descending by created time
+	db.documents.sort((a, b) => a.created > b.created ? -1 : 1);
 	await fs.writeFile(blogIndexPath, strJson(db));
 
-	console.log(`Generated index.json`);
+	console.log(`Generated index.json with ${db.documents.length} document`);
 	console.groupEnd();
 
 	async function updateDBDoc(filePath, oldDoc) {
@@ -212,6 +211,7 @@ async function genIndexData(updatedFiles, removedFiles) {
 		const { content, lang } = getLangAndContent(filePath);
 		const id = path.parse(content).name;
 		const queryResult = queryResultMap.get(filePath);
+		if (!queryResult) console.log(filePath);
 
 		let doc = {
 			id,
@@ -235,10 +235,12 @@ async function genIndexData(updatedFiles, removedFiles) {
 				yaml.parse('---\n' + docSource.replace(/^/gm, '  ') + '\n'),
 				// These value can't be update
 				oldDoc && {
-					id: oldDoc.id,
-					lang: oldDoc.lang,
-					content: oldDoc.content,
 					created: oldDoc.created,
+				},
+				{
+					id,
+					lang,
+					content,
 				}
 			);
 		}
@@ -246,3 +248,10 @@ async function genIndexData(updatedFiles, removedFiles) {
 		return doc;
 	}
 }
+
+(function() {
+	console.log("Generating files ...");
+	generate()
+		.then(() => console.log(`Everything finishing successfully!`))
+		.catch(console.log);
+})();
