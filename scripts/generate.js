@@ -68,8 +68,6 @@ function getUrlFromContent(filePath) {
 
 async function generate() {
 
-	await execute(`git checkout master`).then(console.log);
-
 	// patch.json
 	await genPatch();
 
