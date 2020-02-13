@@ -1,5 +1,5 @@
 {
-  "$commit": "ab24f8a635fca5e47dfa7398add0ae6e01225b8c",
+  "$commit": "6138b20cc257662f2cc2209d461fe98bcf9d3f14",
   "documents": [
     {
       "id": "404",
@@ -70,7 +70,7 @@
     {
       "id": "index",
       "lang": "en",
-      "content": "/index",
+      "content": "/",
       "title": "index",
       "description": "",
       "tags": "",
@@ -92,7 +92,7 @@
     {
       "id": "index",
       "lang": "vn",
-      "content": "/index",
+      "content": "/",
       "title": "index",
       "description": "",
       "tags": "",

@@ -34,7 +34,6 @@ const yaml = require('yaml');
 const {
 	execute,
 	triggerBuild,
-	getBuildData,
 	getLastModifyDate,
 	contentDiff,
 } = require('./utils');
@@ -49,6 +48,7 @@ process.chdir(rootDir);
 
 const isDefaultContent = p => p.startsWith('content/en');
 const strJson = j => JSON.stringify(j, null, 2);
+const trimUrl = u => u.replace(/\.md$/, '').replace(/\/index/, '/');
 
 function getLangAndContent(filePath) {
 	const result = /content\/(\w+)\/(.+)/.exec(filePath);
@@ -58,12 +58,8 @@ function getLangAndContent(filePath) {
 
 	return {
 		lang: result[1],
-		content: '/' + result[2].replace(/\.md$/, ''),
+		content: trimUrl('/' + result[2]),
 	};
-}
-
-function getUrlFromContent(filePath) {
-	return ('/' + path.relative(contentDir, filePath)).replace(/(index|\.md)/g, '');
 }
 
 async function generate() {
@@ -94,6 +90,8 @@ async function genPatch() {
 	console.group(`Generating patch.json with diff from ${published$commit.slice(0, 7)} to ${head$commit.slice(0, 7)}`);
 
 	const { updatedFiles, removedFiles } = await contentDiff(published$commit);
+
+	const getUrlFromContent = p => trimUrl('/' + path.relative(contentDir, p));
 
 	const updatePaths = updatedFiles
 		.filter(isDefaultContent)
@@ -210,7 +208,7 @@ async function genIndex() {
 	async function updateDBDoc(filePath, oldDoc) {
 
 		const { content, lang } = getLangAndContent(filePath);
-		const id = path.parse(content).name;
+		const id = path.parse(filePath).name;
 		const queryResult = queryResultMap.get(filePath);
 		if (!queryResult) console.log(filePath);
 
