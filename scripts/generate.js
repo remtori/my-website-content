@@ -14,12 +14,12 @@
  * Environment Variable:
  *
  * TEST:
- *       - 1: Generate files with the online firestore data,
+ *       - 1: Generate files,
  *            along with the updated time (commit time) from github,
  *            then pushing the changes to Github
  *            WITHOUT triggering a Netlify build
  *
- *       - 2: Generate files with the online firestore data,
+ *       - 2: Generate files,
  *            WITHOUT querying updated time (commit time) from github,
  * 	          pushing the changes or triggering a Netlify build
  *
