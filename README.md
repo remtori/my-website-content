@@ -35,18 +35,21 @@ On commit generate & commit:
 index.json example layout
 
 ```json
-[
-	{
-		"id": "first-test-[optional_time_hash:8]",
-		"language": "en",
-		"content": "blogs/first-test-[optional_time_hash:8].md",
-		"isFullPage": false,
-		"title": "First blog for testing purpose",
-		"description": "A really nice description because i just has a terrible night",
-		"tags": "first-blog blog first fuck im-sad",
-		"author": "Remtori",
-		"created": "2020-02-04T16:44:07.160Z",
-		"modified": "2020-02-04T16:44:07.160Z"
-	}
-]
+{
+  	"$commit": "7074d77f8ee68f465299ddc6b0981d3b585468ea",
+	"documents": [
+		{
+			"id": "first-test-[optional_time_hash:8]",
+			"language": "en",
+			"content": "blogs/first-test-[optional_time_hash:8].md",
+			"isFullPage": false,
+			"title": "First blog for testing purpose",
+			"description": "A really nice description because i just has a terrible night",
+			"tags": "first-blog blog first fuck im-sad",
+			"author": "Remtori",
+			"created": "2020-02-04T16:44:07.160Z",
+			"modified": "2020-02-04T16:44:07.160Z"
+		}
+	]
+}
 ```
