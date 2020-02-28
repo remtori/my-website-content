@@ -1,6 +1,17 @@
 {
-  "$commit": "7074d77f8ee68f465299ddc6b0981d3b585468ea",
+  "$commit": "a91f731f3741aa3931663fcf41f60323e0de7b93",
   "documents": [
+    {
+      "id": "fitness-tracker-1",
+      "lang": "en",
+      "content": "/blogs/fitness-tracker-1",
+      "title": "Writing a fitness tracker app in Flutter (Day 1)",
+      "description": "Activity Recognition",
+      "tags": "blog fitness-tracker flutter",
+      "author": "Remtori",
+      "created": "2020-02-28T00:15:25Z",
+      "modified": "2020-02-28T00:15:25Z"
+    },
     {
       "id": "404",
       "lang": "en",
